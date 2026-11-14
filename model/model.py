@@ -25,7 +25,22 @@ class Model:
         :param mese: Mese selezionato (un intero da 1 a 12)
         :return: lista di tuple --> (nome del distributore, media), es. (Distributore A, 1.789)
         """
-        # TODO
+        if self._distributori is None:
+            return None
+
+        risultato = []
+        for distributore in self._distributori:
+            prezzi = distributore.get_prezzi()
+            if prezzi is None:
+                continue
+
+            prezzi_mese = [p.prezzo_litro for p in prezzi if p.data.month == mese]
+            # Il datetime ci crea un oggetto data con dentro gli attributi year, month, day già organizzati
+            if len(prezzi_mese) > 0:
+                media = sum(prezzi_mese) / len(prezzi_mese)
+                risultato.append((distributore.nome, media))
+
+        return risultato
 
     def get_sequenza_ottima(self, mese:int):
         """
@@ -46,11 +61,42 @@ class Model:
 
     def __ricorsione(self, sequenza_parziale, giorno, ultimo_distributore, costo_corrente, prezzi_settimana):
         """ Implementa la ricorsione """
-        # TODO
+        # Condizione terminale: ho scelto un distributore per tutti i 7 giorni
+        if giorno > 7:
+            if self.__costo_ottimo == -1 or costo_corrente < self.__costo_ottimo:
+                self.__costo_ottimo = costo_corrente
+                self.__sequenza_ottima = list(sequenza_parziale)
+            return
+
+        for id_distributore in prezzi_settimana:
+            # Calcolo il costo parziale se scelgo questo distributore oggi
+            costo_giorno = prezzi_settimana[id_distributore][giorno - 1] * 100
+            if ultimo_distributore is not None and id_distributore != ultimo_distributore:
+                costo_giorno += 5  # costo fisso di spostamento
+            nuovo_costo = costo_corrente + costo_giorno
+
+            # Filtro: proseguo solo se posso ancora battere la soluzione migliore
+            if self.__costo_ottimo == -1 or nuovo_costo < self.__costo_ottimo:
+                sequenza_parziale.append(id_distributore)
+                self.__ricorsione(sequenza_parziale, giorno + 1, id_distributore, nuovo_costo, prezzi_settimana)
+
+                # Backtracking
+                sequenza_parziale.pop()
 
     def __get_prezzi_prima_settimana_mese(self, mese: int):
         """
         Restituisce i prezzi dei primi 7 giorni del mese selezionato per ciascun distributore.
         :return: un dizionario: {id_distributore: [prezzo_giorno1, ..., prezzo_giorno7]}
         """
-        # TODO
+        if self._distributori is None:
+            return None
+
+        risultato = {}
+        for distributore in self._distributori:
+            prezzi = distributore.get_prezzi()
+            if prezzi is None:
+                continue
+
+            prezzi_prima_settimana = [p.prezzo_litro for p in prezzi if p.data.day <= 7 and p.data.month == mese]
+            risultato[distributore.id] = prezzi_prima_settimana
+        return risultato
