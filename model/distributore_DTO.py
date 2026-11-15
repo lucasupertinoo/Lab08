@@ -7,6 +7,7 @@ from database.prezzo_DAO import PrezzoDAO
 
 @dataclass()
 class Distributore:
+    # Mettiamo come attributi le colonne della tabella relativa con i relativi tipi di dati
     id: int
     nome: str
     indirizzo: str

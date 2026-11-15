@@ -9,6 +9,8 @@ from dataclasses import dataclass
 @dataclass()
 class Prezzo:
     data: datetime.date
+    # data è un oggetto datetime.date: contiene già .year, .month, .day
+    # (es. p.data.month == 1 per gennaio, p.data.day <= 7 per la prima settimana)
     prezzo_litro: float
     id_distributore: int
 
